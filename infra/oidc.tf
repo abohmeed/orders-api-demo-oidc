@@ -1,7 +1,7 @@
 variable "github_subject" {
   description = "Subject claim allowed to assume the plan role: one repository and one branch."
   type        = string
-  default     = "repo:abohmeed/orders-api-demo-oidc:ref:refs/heads/main"
+  default     = "repo:abohmeed:304622/orders-api-demo-oidc:1457579666:ref:refs/heads/main"
 }
 
 resource "aws_iam_openid_connect_provider" "github" {
