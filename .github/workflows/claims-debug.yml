@@ -1,0 +1,25 @@
+name: claims-debug
+on: workflow_dispatch
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  claims:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print OIDC claims shape
+        run: |
+          set -euo pipefail
+          RESP=$(curl -sS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")
+          TOKEN=$(printf '%s' "$RESP" | jq -r .value)
+          python3 -c '
+import json,base64,re,sys
+tok=sys.argv[1]
+payload=tok.split(".")[1]+"="*(-len(tok.split(".")[1])%4)
+claims=json.loads(base64.urlsafe_b64decode(payload))
+def scrub(v):
+  return re.sub(r"\d{4,}","N",v) if isinstance(v,str) else v
+keys=("iss","aud","sub","repository","repository_id","repository_owner","repository_owner_id","ref","job_workflow_ref","workflow_ref","actor")
+print(json.dumps({k:scrub(claims[k]) for k in keys if k in claims}, indent=2))
+' "$TOKEN"
